@@ -1,10 +1,6 @@
 # Simplified GPG exchange wrapper
 
 [![PyPI](https://img.shields.io/pypi/v/gpg-exchange.svg)](https://pypi.python.org/pypi/gpg-exchange)
-[![Build 
-Status](https://travis-ci.org/lhelwerd/gpg-exchange.svg?branch=master)](https://travis-ci.org/lhelwerd/gpg-exchange)
-[![Coverage 
-Status](https://coveralls.io/repos/github/lhelwerd/gpg-exchange/badge.svg?branch=master)](https://coveralls.io/github/lhelwerd/gpg-exchange?branch=master)
 
 This module abstracts some of the data types and operations performed by the
 [GPG Made Easy](https://pypi.python.org/pypi/gpg) library in order to provide 
