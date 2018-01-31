@@ -25,11 +25,13 @@ class Exchange(object):
     GPG exchange service.
     """
 
-    def __init__(self, armor=True, home_dir=None, passphrase=None):
+    def __init__(self, armor=True, home_dir=None, engine_path=None, passphrase=None):
         self._gpg = gpg.Context(armor=armor)
 
-        if home_dir is not None:
-            self._gpg.set_engine_info(self._gpg.protocol, home_dir=home_dir)
+        if home_dir is not None or engine_path is not None:
+            self._gpg.set_engine_info(self._gpg.protocol,
+                                      file_name=engine_path,
+                                      home_dir=home_dir)
 
         if passphrase is not None:
             self._passphrase = passphrase
@@ -37,6 +39,12 @@ class Exchange(object):
             self._gpg.set_passphrase_cb(passphrase)
         else:
             self._passphrase = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        self._gpg.__exit__(exc_type, exc_value, exc_tb)
 
     def generate_key(self, name, email, comment='exchange generated key',
                      passphrase=None):
@@ -111,7 +119,8 @@ Passphrase: {passphrase}
         """
 
         with gpg.Data(pubkey) as import_key:
-            result = self._gpg.op_import(import_key)
+            self._gpg.op_import(import_key)
+            result = self._gpg.op_import_result()
 
         if result.considered != 1:
             raise ValueError('Exactly one public key must be provided', result)
@@ -181,16 +190,16 @@ Passphrase: {passphrase}
                 ciphertext.new_from_fd(output_file)
                 self._encrypt(plaintext, ciphertext, recipients, always_trust)
 
-    def _decrypt(self, ciphertext, plaintext):
+    def _decrypt(self, ciphertext, plaintext, verify=True):
         try:
-            self._gpg.decrypt(ciphertext, plaintext)
+            self._gpg.decrypt(ciphertext, plaintext, verify=verify)
         except gpg.errors.GPGMEError as error:
             if error.getcode() == gpg.errors.NO_DATA:
                 raise ValueError('No encrypted data')
 
             raise
 
-    def decrypt_text(self, data):
+    def decrypt_text(self, data, verify=True):
         """
         Decrypt the ciphertext `data`.
 
@@ -198,10 +207,10 @@ Passphrase: {passphrase}
         """
 
         with gpg.Data() as sink:
-            self._decrypt(data, sink)
+            self._decrypt(data, sink, verify=verify)
             return self._read_data(sink)
 
-    def decrypt_file(self, input_file, output_file):
+    def decrypt_file(self, input_file, output_file, verify=True):
         """
         Decrypt the ciphertext stored in `input_file` and store the decrypted
         data in `output_file`. The files must be already opened with the correct
@@ -212,4 +221,4 @@ Passphrase: {passphrase}
             ciphertext.new_from_fd(input_file)
             with gpg.Data() as plaintext:
                 plaintext.new_from_fd(output_file)
-                self._decrypt(ciphertext, plaintext)
+                self._decrypt(ciphertext, plaintext, verify=verify)
