@@ -29,7 +29,7 @@ class Exchange(object):
         self._gpg = gpg.Context(armor=armor)
 
         if home_dir is not None:
-            self._gpg.home_dir = home_dir
+            self._gpg.set_engine_info(self._gpg.protocol, home_dir=home_dir)
 
         if passphrase is not None:
             self._passphrase = passphrase
