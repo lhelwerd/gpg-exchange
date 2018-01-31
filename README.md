@@ -12,6 +12,7 @@ public key exchange, encryption and decryption using
 
 - Retrieve passphrase via callback
 - Key generation
+- Key search and deletion
 - Key import and export
 - Encryption and decryption using normal string types or open files
 

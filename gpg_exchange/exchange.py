@@ -79,6 +79,21 @@ Passphrase: {passphrase}
         except StopIteration:
             raise KeyError(pattern)
 
+    def delete_key(self, pattern, secret=False):
+        """
+        Remove the key that matches the string `pattern`.
+
+        Returns the deleted Key object or raises a `KeyError`.
+        """
+
+        key = self.find_key(pattern)
+        flags = gpg.constants.DELETE_FORCE
+        if secret:
+            flags |= gpg.constants.DELETE_ALLOW_SECRET
+
+        self._gpg.op_delete_ext(key, flags)
+        return key
+
     def _get_imported_key(self, import_result):
         try:
             fpr = import_result.imports[0].fpr
