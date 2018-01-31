@@ -21,7 +21,7 @@ The expression parser has been tested to work on Python 2.7 and 3.6. This
 package depends on the [gpg](https://pypi.python.org/pypi/gpg) library, which 
 itself depends on [SWIG](http://www.swig.org/) and recent versions of the
 [GPGME](https://www.gnupg.org/software/gpgme/index.html) library plus 
-associated development headers. GPGME then depends on GnuPG 2.2+ and its 
+associated development headers. GPGME then depends on GnuPG 2.1+ and its 
 libraries. You can install some of these packages through your package manager 
 if it is recent enough (search for `gpg2`). Even then you may still need a more 
 recent version of libgpg-error, for example.
@@ -36,6 +36,11 @@ you are using an older version of GnuPG, which can be overcome by running only
 `./configure` and `sudo make install` or by `sed -i 's/gpgconf --kill 
 all/gpgconf --kill gpg-agent scdaemon/' tests/gpg/Makefile tests/gpgsm/Makefile 
 lang/python/tests/Makefile lang/qt/tests/Makefile` when the compilation fails.
+
+For GnuPG 2.1, you may need to add `allow-loopback-pinentry` to 
+`$HOME/.gnupg/gpg-agent.conf` in order to use passphrase callbacks. This is no 
+longer required in GnuPG 2.2. Key generation must provide a passphrase in GnuPG 
+2.2+.
 
 ## Installation
 

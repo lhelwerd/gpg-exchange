@@ -30,9 +30,42 @@ class Exchange(object):
 
         if home_dir is not None:
             self._gpg.home_dir = home_dir
+
         if passphrase is not None:
+            self._passphrase = passphrase
             self._gpg.pinentry_mode = gpg.constants.PINENTRY_MODE_LOOPBACK
             self._gpg.set_passphrase_cb(passphrase)
+        else:
+            self._passphrase = None
+
+    def generate_key(self, name, email, comment='exchange generated key',
+                     passphrase=None):
+        """
+        Generate a new key pair for the given `name` and `email`, including
+        a `comment`. Either `passphrase` must provide a passphrase string or
+        the passphrase callback is used, otherwise a `RuntimeError` is raised.
+
+        Returns the Key object of the newly generated key.
+        """
+
+        if passphrase is None:
+            if self._passphrase is not None:
+                passphrase = self._passphrase(name, comment, 0, None)
+            else:
+                raise RuntimeError('Must provide a passphrase to generate key')
+
+        self._gpg.op_genkey("""<GnupgKeyParms format="internal">
+Key-Type: default
+Subkey-Type: default
+Name-Real: {name}
+Name-Comment: {comment}
+Name-Email: {email}
+Expire-Date: 0
+Passphrase: {passphrase}
+</GnupgKeyParms>""".format(name=name, email=email, comment=comment,
+                           passphrase=passphrase), None, None)
+
+        return self._gpg.op_genkey_result()
 
     def find_key(self, pattern):
         """
