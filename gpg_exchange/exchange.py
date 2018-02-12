@@ -172,7 +172,8 @@ Passphrase: {passphrase}
                 self._encrypt(plaintext, ciphertext, recipients, always_trust)
                 return self._read_data(ciphertext)
 
-    def encrypt_file(self, input_file, output_file, recipients=None, always_trust=False):
+    def encrypt_file(self, input_file, output_file, recipients=None,
+                     always_trust=False, armor=None):
         """
         Encrypt the plain text stored in `input_file` for the given `recipients`
         and store the encrypted data in `output_file`. The files must be already
@@ -182,13 +183,25 @@ Passphrase: {passphrase}
 
         If `always_trust` is `True` then keys in the recipients that are not
         explicitly marked as trusted are still allowed.
+
+        If `armor` is not `None` then it overrides the `armor` property set
+        upon construction. This may be useful for encrypting binary data on
+        a channel that supports non-text data since it reduces the required
+        size and network resources.
         """
 
         with gpg.Data() as plaintext:
             plaintext.new_from_fd(input_file)
             with gpg.Data() as ciphertext:
                 ciphertext.new_from_fd(output_file)
+                if armor is not None:
+                    old_armor = self._gpg.armor
+                    self._gpg.armor = armor
+
                 self._encrypt(plaintext, ciphertext, recipients, always_trust)
+
+                if armor is not None:
+                    self._gpg.armor = old_armor
 
     def _decrypt(self, ciphertext, plaintext, verify=True):
         try:
@@ -210,7 +223,7 @@ Passphrase: {passphrase}
             self._decrypt(data, sink, verify=verify)
             return self._read_data(sink)
 
-    def decrypt_file(self, input_file, output_file, verify=True):
+    def decrypt_file(self, input_file, output_file, verify=True, armor=None):
         """
         Decrypt the ciphertext stored in `input_file` and store the decrypted
         data in `output_file`. The files must be already opened with the correct
@@ -221,4 +234,11 @@ Passphrase: {passphrase}
             ciphertext.new_from_fd(input_file)
             with gpg.Data() as plaintext:
                 plaintext.new_from_fd(output_file)
+                if armor is not None:
+                    old_armor = self._gpg.armor
+                    self._gpg.armor = armor
+
                 self._decrypt(ciphertext, plaintext, verify=verify)
+
+                if armor is not None:
+                    self._gpg.armor = old_armor
