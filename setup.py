@@ -19,17 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <https://www.gnu.org/licenses/>.
 """
 
-try:
-    from builtins import str
-except ImportError:
-    pass
-from pip.download import PipSession
-from pip.req import parse_requirements
 from setuptools import setup, find_packages
-from gpg_exchange import __version__
 
 setup(name='gpg-exchange',
-      version=__version__,
+      version='0.0.6',
       description='Simplified GPG exchange',
       long_description='''Simplified GPG exchange wrapper.
 This module abstracts some of the data types and operations performed by the
@@ -43,9 +36,7 @@ public key exchange, encryption and decryption using GPG.''',
       entry_points={},
       include_package_data=True,
       install_requires=[
-          str(requirement.req)
-          for requirement in parse_requirements('requirements.txt',
-                                                session=PipSession())
+          'gpg'
       ],
       classifiers=[
           'Development Status :: 3 - Alpha',
