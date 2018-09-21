@@ -83,7 +83,7 @@ Passphrase: {passphrase}
         """
 
         try:
-            return self._gpg.keylist(pattern).next()
+            return next(self._gpg.keylist(pattern))
         except StopIteration:
             raise KeyError(pattern)
 
