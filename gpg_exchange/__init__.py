@@ -19,4 +19,4 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 
 from .exchange import Exchange
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'

@@ -146,20 +146,22 @@ Passphrase: {passphrase}
         data.seek(0, os.SEEK_SET)
         return data.read()
 
-    def _encrypt(self, plaintext, ciphertext, recipients, always_trust):
+    def _encrypt(self, plaintext, ciphertext, recipients, passphrase,
+                 always_trust=False):
         if recipients is None:
             recipients = []
         elif not isinstance(recipients, (list, tuple)):
             recipients = [recipients]
 
         self._gpg.encrypt(plaintext, recipients, sink=ciphertext,
-                          always_trust=always_trust)
+                          passphrase=passphrase, always_trust=always_trust)
 
-    def encrypt_text(self, data, recipients=None, always_trust=False):
+    def encrypt_text(self, data, recipients=None, passphrase=None,
+                     always_trust=False):
         """
         Encrypt the plain text `data` for the given `recipients`, which may be
         a single Key object, a list of Key objects, or `None` to encrypt the
-        data symmetrically.
+        data symmetrically. Provide a `passphrase` for symmetric encryption.
 
         If `always_trust` is `True` then keys in the recipients that are not
         explicitly marked as trusted are still allowed.
@@ -169,17 +171,18 @@ Passphrase: {passphrase}
 
         with gpg.Data(data) as plaintext:
             with gpg.Data() as ciphertext:
-                self._encrypt(plaintext, ciphertext, recipients, always_trust)
+                self._encrypt(plaintext, ciphertext, recipients, passphrase,
+                              always_trust=always_trust)
                 return self._read_data(ciphertext)
 
     def encrypt_file(self, input_file, output_file, recipients=None,
-                     always_trust=False, armor=None):
+                     passphrase=None, always_trust=False, armor=None):
         """
         Encrypt the plain text stored in `input_file` for the given `recipients`
         and store the encrypted data in `output_file`. The files must be already
         opened with the correct read/write (and binary) modes. The recipients
         may be a single Key object, a list of Key objects, or `None` to encrypt
-        the data symmetrically.
+        the data symmetrically. Provide a `passphrase` for symmetric encryption.
 
         If `always_trust` is `True` then keys in the recipients that are not
         explicitly marked as trusted are still allowed.
@@ -198,12 +201,13 @@ Passphrase: {passphrase}
                     old_armor = self._gpg.armor
                     self._gpg.armor = armor
 
-                self._encrypt(plaintext, ciphertext, recipients, always_trust)
+                self._encrypt(plaintext, ciphertext, recipients, passphrase,
+                              always_trust=always_trust)
 
                 if armor is not None:
                     self._gpg.armor = old_armor
 
-    def _decrypt(self, ciphertext, plaintext, verify=True):
+    def _decrypt(self, ciphertext, plaintext, passphrase=None, verify=True):
         try:
             self._gpg.decrypt(ciphertext, plaintext, verify=verify)
         except gpg.errors.GPGMEError as error:
@@ -212,22 +216,27 @@ Passphrase: {passphrase}
 
             raise
 
-    def decrypt_text(self, data, verify=True):
+    def decrypt_text(self, data, passphrase=None, verify=True):
         """
         Decrypt the ciphertext `data`.
+
+        Provide a `passphrase` for symmetric decryption.
 
         The decrypted data is returned as a string.
         """
 
         with gpg.Data() as sink:
-            self._decrypt(data, sink, verify=verify)
+            self._decrypt(data, sink, passphrase=passphrase, verify=verify)
             return self._read_data(sink)
 
-    def decrypt_file(self, input_file, output_file, verify=True, armor=None):
+    def decrypt_file(self, input_file, output_file, passphrase=None,
+                     verify=True, armor=None):
         """
         Decrypt the ciphertext stored in `input_file` and store the decrypted
         data in `output_file`. The files must be already opened with the correct
         read/write and binary modes.
+
+        Provide a `passphrase` for symmetric decryption.
         """
 
         with gpg.Data() as ciphertext:
@@ -238,7 +247,8 @@ Passphrase: {passphrase}
                     old_armor = self._gpg.armor
                     self._gpg.armor = armor
 
-                self._decrypt(ciphertext, plaintext, verify=verify)
+                self._decrypt(ciphertext, plaintext, passphrase=passphrase,
+                              verify=verify)
 
                 if armor is not None:
                     self._gpg.armor = old_armor

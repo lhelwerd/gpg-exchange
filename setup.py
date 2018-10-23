@@ -22,7 +22,7 @@ along with this program; if not, see <https://www.gnu.org/licenses/>.
 from setuptools import setup, find_packages
 
 setup(name='gpg-exchange',
-      version='0.0.6',
+      version='0.0.7',
       description='Simplified GPG exchange',
       long_description='''Simplified GPG exchange wrapper.
 This module abstracts some of the data types and operations performed by the
